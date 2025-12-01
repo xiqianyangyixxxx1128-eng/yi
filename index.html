@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密内容</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 50px;
+            position: relative;
+        }
+        .password-section {
+            text-align: center;
+        }
+        .content-section {
+            display: none;
+            text-align: left;
+        }
+        input {
+            width: 80%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #07c160;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #06ae56;
+        }
+        .hint {
+            color: red;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+        .content {
+            line-height: 1.6;
+            white-space: pre-wrap;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #07c160;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        
+        /* 新增样式 */
+        .upload-section {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: none;
+        }
+        .upload-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+        .upload-btn:hover {
+            background: #0056CC;
+        }
+        .upload-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .upload-form {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .upload-form h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .upload-form textarea {
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        .upload-form .file-input {
+            margin-bottom: 15px;
+        }
+        .upload-form .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .upload-form .form-actions button {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        .upload-form .cancel-btn {
+            background: #999;
+        }
+        .upload-form .cancel-btn:hover {
+            background: #777;
+        }
+        .page-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .page-btn {
+            background: #07c160;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .page-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .page-info {
+            font-size: 14px;
+            color: #666;
+        }
+        .user-content {
+            position: relative;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #007AFF;
+
+            /* 新增：使用宋体（SimSun/宋体）作为正文字体，并保留空格与换行 */
+            font-family: "SimSun", "宋体", "STSong", serif;
+            font-size: 16px;             /* 正文字号，可根据需要调整，例如 14px/16px/18px */
+            line-height: 1.8;
+            white-space: pre-wrap;       /* 保留空格与换行，自动换行 */
+            word-break: break-word;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #FF3B30;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .user-image {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 密码输入区域 -->
+        <div id="passwordSection" class="password-section">
+            <h1> 加密内容🔒</h1>
+            <p>请输入访问密码查看内容：</p>
+            <input type="password" id="passwordInput" placeholder="我经常叫你的昵称（全拼）">
+            <br>
+            <button onclick="checkPassword()">解锁内容</button>
+            <div id="passwordHint" class="hint"></div>
+        </div>
+
+        <!-- 内容显示区域 -->
+        <div id="contentSection" class="content-section">
+            <!-- 上传按钮区域 -->
+            <div id="uploadSection" class="upload-section">
+                <button class="upload-btn" onclick="showUploadModal()">
+                    <span>📤 上传</span>
+                </button>
+            </div>
+            
+            <h1>📜 老爷 见字如面📜</h1.>  
+            <!-- 用户上传内容区域 -->
+            <div id="userContentArea"></div>
+            
+            <!-- 翻页导航 -->
+            <div class="page-navigation">
+                <button id="prevPageBtn" class="page-btn" onclick="changePage(-1)">上一页</button>
+                <span id="pageInfo" class="page-info">第 <span id="currentPage">1</span> 页，共 <span id="totalPages">1</span> 页</span>
+                <button id="nextPageBtn" class="page-btn" onclick="changePage(1)">下一页</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="resetPage()">返回</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传模态框 -->
+    <div id="uploadModal" class="upload-modal">
+        <div class="upload-form">
+            <h3>上传内容</h3>
+            <textarea id="userText" placeholder="请输入你想添加的文字内容..."></textarea>
+            <div class="file-input">
+                <input type="file" id="userImage" accept="image/*">
+            </div>
+            <div class="form-actions">
+                <button class="cancel-btn" onclick="hideUploadModal()">取消</button>
+                <button onclick="uploadContent()">上传</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔐 在这里设置你的密码
+        const correctPassword = "laoye";  // 修改为你想要的密码
+        
+        // 存储用户上传的内容
+        let userContents = JSON.parse(localStorage.getItem('userContents')) || [];
+        let currentPage = 1;
+        const itemsPerPage = 1; // 每页显示的内容数量
+
+        function checkPassword() {
+            const userInput = document.getElementById('passwordInput').value;
+            const hintElement = document.getElementById('passwordHint');
+            
+            if (userInput === correctPassword) {
+                // 密码正确，显示内容
+                document.getElementById('passwordSection').style.display = 'none';
+                document.getElementById('contentSection').style.display = 'block';
+                document.getElementById('uploadSection').style.display = 'block';
+                hintElement.textContent = "";
+                
+                // 显示用户上传的内容
+                displayUserContents();
+            } else {
+                // 密码错误
+                hintElement.textContent = "密码错误，请重新输入";
+                document.getElementById('passwordInput').value = "";
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function resetPage() {
+            // 返回到密码输入界面
+            document.getElementById('passwordSection').style.display = 'block';
+            document.getElementById('contentSection').style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('passwordInput').value = "";
+            document.getElementById('passwordHint').textContent = "";
+        }
+
+        // 上传功能
+        function showUploadModal() {
+            document.getElementById('uploadModal').style.display = 'flex';
+        }
+
+        function hideUploadModal() {
+            document.getElementById('uploadModal').style.display = 'none';
+            document.getElementById('userText').value = "";
+            document.getElementById('userImage').value = "";
+        }
+
+        function uploadContent() {
+            const text = document.getElementById('userText').value.trim();
+            const imageFile = document.getElementById('userImage').files[0];
+            
+            if (!text && !imageFile) {
+                alert("请至少输入文字或选择一张图片");
+                return;
+            }
+            
+            // 创建内容对象
+            const content = {
+                id: Date.now(), // 使用时间戳作为唯一ID
+                text: text,
+                image: null
+            };
+            
+            // 如果有图片，转换为base64
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    content.image = e.target.result;
+                    saveContent(content);
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                saveContent(content);
+            }
+        }
+
+        function saveContent(content) {
+            // 添加到用户内容数组
+            userContents.push(content);
+            
+            // 保存到本地存储
+            localStorage.setItem('userContents', JSON.stringify(userContents));
+            
+            // 隐藏上传模态框
+            hideUploadModal();
+            
+            // 重新显示内容
+            displayUserContents();
+        }
+
+        function displayUserContents() {
+            const userContentArea = document.getElementById('userContentArea');
+            userContentArea.innerHTML = "";
+            
+            // 计算总页数
+            const totalPages = Math.ceil(userContents.length / itemsPerPage) || 1;
+            document.getElementById('totalPages').textContent = totalPages;
+            
+            // 计算当前页应该显示的内容
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, userContents.length);
+            
+            // 显示当前页的内容
+            for (let i = startIndex; i < endIndex; i++) {
+                const content = userContents[i];
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'user-content';
+                
+                // 添加删除按钮
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.onclick = function() {
+                    deleteContent(content.id);
+                };
+                contentDiv.appendChild(deleteBtn);
+                
+                // 添加文本内容（textContent +  CSS white-space: pre-wrap 会保留空格与换行）
+                if (content.text) {
+                    const textDiv = document.createElement('div');
+                    textDiv.textContent = content.text;
+                    contentDiv.appendChild(textDiv);
+                }
+                
+                // 添加图片
+                if (content.image) {
+                    const img = document.createElement('img');
+                    img.src = content.image;
+                    img.className = 'user-image';
+                    contentDiv.appendChild(img);
+                }
+                
+                userContentArea.appendChild(contentDiv);
+            }
+            
+            // 更新翻页按钮状态
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
+            document.getElementById('currentPage').textContent = currentPage;
+        }
+
+        function deleteContent(contentId) {
+            if (confirm("确定要删除这条内容吗？")) {
+                // 从数组中移除内容
+                userContents = userContents.filter(content => content.id !== contentId);
+                
+                // 更新本地存储
+                localStorage.setItem('userContents', JSON.stringify(userContents));
+                
+                // 调整当前页码，确保不超出范围
+                const totalPages = Math.ceil(userContents.length / itemsPerPage);
+                if (currentPage > totalPages) {
+                    currentPage = Math.max(1, totalPages);
+                }
+                
+                // 重新显示内容
+                displayUserContents();
+            }
+        }
+
+        function changePage(direction) {
+            const totalPages = Math.ceil(userContents.length / itemsPerPage);
+            currentPage += direction;
+            
+            // 确保页码在有效范围内
+            currentPage = Math.max(1, Math.min(currentPage, totalPages));
+            
+            // 重新显示内容
+            displayUserContents();
+        }
+
+        // 支持按回车键提交
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+    </script>
+</body>
+
+</html>
